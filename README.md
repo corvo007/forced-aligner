@@ -13,7 +13,7 @@
 
 ## 系统要求
 
-- Python 3.9+
+- Python 3.10+
 - FFmpeg (用于音频转换)
 - PyTorch (CPU 或 CUDA 版本)
 - 本地对齐模型 (如 `mms-300m-1130-forced-aligner`)
@@ -388,17 +388,6 @@ RuntimeError: CUDA out of memory
 - 对于 CJK 语言，确保使用 `--romanize`
 - 确保音频质量清晰，背景噪音较少
 - 尝试使用更大的模型
-
----
-
-## 性能参考
-
-| 硬件 | 音频长度 | 处理时间 |
-|------|----------|----------|
-| RTX 3080 (GPU) | 10 分钟 | ~15 秒 |
-| RTX 3080 (GPU) | 60 分钟 | ~90 秒 |
-| Intel i7 (CPU) | 10 分钟 | ~120 秒 |
-| Intel i7 (CPU) | 60 分钟 | ~720 秒 |
 
 ---
 
