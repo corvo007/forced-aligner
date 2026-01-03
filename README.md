@@ -149,6 +149,22 @@ I'm doing great, thanks!
 
 ---
 
+### 1.5. SRT 转 JSON 对齐
+
+也可以将 SRT 输入直接对齐并输出为 JSON 格式：
+
+```bash
+python align.py \
+    --audio "podcast.mp3" \
+    --srt "subtitles.srt" \
+    --json-output "aligned.json" \
+    --model "./models/mms-300m" \
+    --language "eng"
+```
+**输出:** 包含详细元数据和置信度的 JSON 文件。
+
+---
+
 ### 2. JSON 输入/输出
 
 **输入文件 (input.json):**
@@ -179,9 +195,9 @@ python align.py \
 ```json
 {
   "segments": [
-    {"index": 1, "start": 0.12, "end": 1.45, "text": "你好，世界"},
-    {"index": 2, "start": 1.68, "end": 3.92, "text": "今天天气很好"},
-    {"index": 3, "start": 4.15, "end": 6.78, "text": "我们一起去散步吧"}
+    {"index": 1, "start": 0.12, "end": 1.45, "text": "你好，世界", "score": 0.985},
+    {"index": 2, "start": 1.68, "end": 3.92, "text": "今天天气很好", "score": 0.992},
+    {"index": 3, "start": 4.15, "end": 6.78, "text": "我们一起去散步吧", "score": 0.978}
   ],
   "metadata": {
     "count": 3,
@@ -300,8 +316,8 @@ debug_output/
 ```json
 {
   "segments": [
-    {"index": 1, "start": 0.12, "end": 1.45, "text": "Hello"},
-    {"index": 2, "start": 1.50, "end": 2.98, "text": "World"}
+    {"index": 1, "start": 0.12, "end": 1.45, "text": "Hello", "score": 0.985},
+    {"index": 2, "start": 1.50, "end": 2.98, "text": "World", "score": 0.992}
   ],
   "metadata": {
     "count": 2,
@@ -318,6 +334,7 @@ debug_output/
 | `segments[].start` | float | 对齐后的开始时间 (秒) |
 | `segments[].end` | float | 对齐后的结束时间 (秒) |
 | `segments[].text` | string | 原始文本 (不变) |
+| `segments[].score` | float | 平均置信度分数 (0.0-1.0) |
 | `metadata.count` | int | 段落总数 |
 | `metadata.processing_time` | float | 处理耗时 (秒) |
 

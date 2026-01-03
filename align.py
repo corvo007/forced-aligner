@@ -24,6 +24,7 @@ Features:
 import argparse
 import json
 import logging
+import math
 import os
 import re
 import subprocess
@@ -136,6 +137,7 @@ class SrtSegment:
     start: float
     end: float
     text: str
+    score: float = None
 
 
 @dataclass
@@ -598,7 +600,8 @@ def map_timestamps_to_srt(
                 index=seg.index,
                 start=seg.start,
                 end=seg.end,
-                text=seg.text
+                text=seg.text,
+                score=0.0
             ))
             continue
         
@@ -614,7 +617,8 @@ def map_timestamps_to_srt(
                 index=seg.index,
                 start=seg.start,
                 end=seg.end,
-                text=seg.text
+                text=seg.text,
+                score=0.0
             ))
             continue
             
@@ -624,16 +628,46 @@ def map_timestamps_to_srt(
         end_idx = min(char_idx + num_chars - 1, len(word_timestamps) - 1)
         end_time = word_timestamps[end_idx]["end"]
         
+        # Calculate average confidence score
+        # The raw score from ctc_forced_aligner is a sum of log probabilities
+        segment_probs = []
+        for wt in word_timestamps[char_idx:end_idx+1]:
+            # Each word timestamp has a "score" which is sum(log_prob) over its frames
+            segment_probs.append(wt.get("score", 0.0))
+
+        # For the final segment score, we want an average linear probability.
+        # heuristic: approximate frame count from duration (stride=20ms)
+        duration = end_time - start_time
+        if duration > 0 and segment_probs:
+            # Stride is typically 20ms (see alignment_utils.py: SAMPLING_FREQ=16000, stride=float(...))
+            estimated_frames = max(1, int(duration / 0.02))
+            
+            # Sum of all word scores = total log probability mass for the segment
+            total_log_prob = sum(segment_probs)
+            
+            # Average log prob per frame
+            avg_log_prob = total_log_prob / estimated_frames
+            
+            # Convert to linear probability (0.0 - 1.0)
+            # Clip at 1.0 just in case approximation is slightly off
+            try:
+                final_score = min(1.0, math.exp(avg_log_prob))
+            except OverflowError:
+                final_score = 0.0
+        else:
+            final_score = 0.0
+            
         logger.debug(
             f"  -> Aligned: [{format_srt_time(start_time)} --> {format_srt_time(end_time)}] "
-            f"(chars {char_idx}-{end_idx})"
+            f"(chars {char_idx}-{end_idx}, score={final_score:.3f})"
         )
         
         aligned.append(SrtSegment(
             index=seg.index,
             start=start_time,
             end=end_time,
-            text=seg.text
+            text=seg.text,
+            score=final_score
         ))
         
         char_idx = end_idx + 1
@@ -962,7 +996,14 @@ def main():
             result.processing_time = processing_time
         
         # Write output (JSON or SRT)
-        if json_mode:
+        if args.json_output:
+            write_json_output(
+                aligned_segments, 
+                args.json_output,
+                processing_time=processing_time
+            )
+            output_msg = args.json_output
+        elif json_mode:
             write_json_output(
                 aligned_segments, 
                 args.json_output or "-",  # Default to stdout if not specified
