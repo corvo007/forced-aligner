@@ -22,16 +22,28 @@
 
 ```bash
 # 1. 克隆仓库
-git clone https://github.com/your-repo/ctc-forced-aligner.git
-cd ctc-forced-aligner
+git clone https://github.com/corvo007/forced-aligner.git
+cd forced-aligner
 
 # 2. 安装依赖
 pip install -r requirements.txt
 
-# 3. 下载对齐模型
+# 3. 安装 ctc-forced-aligner (重要!)
+# 该库不在 PyPI 上，需要从 GitHub Releases 下载 wheel 文件手动安装：
+# https://github.com/corvo007/ctc-forced-aligner/releases
+pip install ctc_forced_aligner-x.x.x-py3-none-any.whl
+
+# 4. 安装 FFmpeg
+# Windows: 下载 ffmpeg.exe 并放在项目目录或添加到 PATH
+# Linux: sudo apt install ffmpeg
+# macOS: brew install ffmpeg
+
+# 5. 下载对齐模型
 # 从 HuggingFace 下载模型到本地目录
 # 例如: https://huggingface.co/MahmoudAshraf/mms-300m-1130-forced-aligner
 ```
+
+> ⚠️ **重要**: `ctc-forced-aligner` 库不在 PyPI 上发布，必须从 [GitHub Releases](https://github.com/corvo007/ctc-forced-aligner/releases) 下载 wheel 文件手动安装。
 
 ## 快速开始
 

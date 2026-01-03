@@ -4,8 +4,9 @@ transformers>=4.34
 scipy
 numpy
 
-# CTC Forced Aligner and its dependencies
-ctc-forced-aligner
+# CTC Forced Aligner dependencies
+# NOTE: ctc-forced-aligner is NOT on PyPI!
+# Download wheel from: https://github.com/corvo007/ctc-forced-aligner/releases
 uroman
 nltk
 Unidecode
