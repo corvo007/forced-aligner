@@ -1,0 +1,11 @@
+# Core dependencies
+torch
+transformers>=4.34
+scipy
+numpy
+
+# CTC Forced Aligner and its dependencies
+ctc-forced-aligner
+uroman
+nltk
+Unidecode
