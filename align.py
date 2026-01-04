@@ -31,6 +31,18 @@ import subprocess
 import sys
 from dataclasses import dataclass, asdict
 from datetime import datetime
+import io
+
+# Force UTF-8 encoding for stdin/stdout/stderr on Windows
+# This is crucial for handling non-ASCII characters (like Japanese) correctly
+# when the script is called from another process (e.g. Node.js)
+if sys.platform == "win32":
+    if sys.stdin:
+        sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
+    if sys.stdout:
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    if sys.stderr:
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 import torch
 
