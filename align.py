@@ -100,7 +100,7 @@ def setup_logging(debug: bool = False, log_file: str = None) -> logging.Logger:
     logger.handlers.clear()
     
     # Console handler
-    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler = logging.StreamHandler(sys.stderr)
     console_handler.setLevel(logging.DEBUG if debug else logging.INFO)
     console_format = logging.Formatter(
         "%(asctime)s [%(levelname)s] %(message)s",
