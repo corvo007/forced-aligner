@@ -641,31 +641,33 @@ def map_timestamps_to_srt(
         end_time = word_timestamps[end_idx]["end"]
         
         # Calculate average confidence score
-        # The raw score from ctc_forced_aligner is a sum of log probabilities
-        segment_probs = []
+        # New Method: Arithmetic Mean of Token/Word Probabilities
+        # This is more intuitive and less sensitive to silence or single bad frames
+        token_scores = []
+        
         for wt in word_timestamps[char_idx:end_idx+1]:
             # Each word timestamp has a "score" which is sum(log_prob) over its frames
-            segment_probs.append(wt.get("score", 0.0))
-
-        # For the final segment score, we want an average linear probability.
-        # heuristic: approximate frame count from duration (stride=20ms)
-        duration = end_time - start_time
-        if duration > 0 and segment_probs:
-            # Stride is typically 20ms (see alignment_utils.py: SAMPLING_FREQ=16000, stride=float(...))
-            estimated_frames = max(1, int(duration / 0.02))
+            token_total_log_prob = wt.get("score", 0.0)
             
-            # Sum of all word scores = total log probability mass for the segment
-            total_log_prob = sum(segment_probs)
+            # Approximate frame count for this specific token
+            # Stride is typically 20ms
+            token_duration = wt["end"] - wt["start"]
+            n_frames = max(1, int(token_duration / 0.02))
             
-            # Average log prob per frame
-            avg_log_prob = total_log_prob / estimated_frames
+            # Average log prob per frame for this token
+            token_avg_log_prob = token_total_log_prob / n_frames
             
-            # Convert to linear probability (0.0 - 1.0)
-            # Clip at 1.0 just in case approximation is slightly off
+            # Convert to linear probability (0.0 - 1.0) for this token
             try:
-                final_score = min(1.0, math.exp(avg_log_prob))
+                token_prob = min(1.0, math.exp(token_avg_log_prob))
             except OverflowError:
-                final_score = 0.0
+                token_prob = 0.0
+            
+            token_scores.append(token_prob)
+
+        # Final score is the arithmetic mean of individual token probabilities
+        if token_scores:
+            final_score = sum(token_scores) / len(token_scores)
         else:
             final_score = 0.0
             
